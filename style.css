@@ -1,0 +1,291 @@
+/* Typeform-like typography (Inter) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+* { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+* {
+  border-radius: 8px; /* Apply rounded corners globally */
+}
+
+
+
+:root {
+  --text-primary: #ffe082;
+  --text-secondary: #bfa14a;
+  --bg: #101010;
+  --bg-soft: #181818;
+  --ink: #ffe082;
+  --ink-weak: #bfa14a;
+  --shadow-sm: 0 6px 16px rgba(255,215,0,0.10);
+  --shadow-md: 0 12px 28px rgba(255,215,0,0.18);
+  --accent: #ffd700;
+  --accent2: #bfa14a;
+  --accent3: #fffbe6;
+  --glass-bg: linear-gradient(135deg, rgba(24,24,24,0.98) 60%, rgba(191,161,74,0.10) 100%);
+  --glass-blur: blur(10px);
+  --overlay: rgba(16,16,16,0.85);
+}
+.file-upload input[type="file"] {
+  opacity: 0;
+  width: 0.1px;
+  height: 0.1px;
+  position: absolute;
+  z-index: -1;
+}
+.file-upload-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  padding: .7rem 1.1rem;
+  border-radius: 16px;
+  background: var(--accent);
+  color: var(--text-primary);
+  border: 2px solid var(--accent2);
+  box-shadow: none;
+  transition: transform 120ms ease, background 180ms, border-color 180ms, color 180ms;
+}
+.file-upload-label:hover {
+  background: var(--accent2);
+  color: var(--ink);
+  border-color: var(--ink);
+}
+.file-upload-label:active {
+  transform: translateY(0);
+}
+.file-upload input[type="file"]:focus + .file-upload-label {
+  outline: 2px solid var(--accent3);
+  outline-offset: 2px;
+}
+
+
+html, body {
+  background: var(--white);
+  color: var(--text-secondary);
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  background-image: url('./bg.jpg'); /* Corrected path to bg.jpg */
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: none;
+  color: var(--text-primary); /* Ensure text is readable */
+}
+
+.container { width:100%; max-width: 1200px; margin: 32px auto 40px; padding: 0 16px; }
+.row { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px; }
+.navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: #ffffffee; backdrop-filter: blur(10px); }
+.navbar-inner { max-width: 1200px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.navbar .nav-links { display: flex; gap: 12px; flex-wrap: wrap; }
+.navbar .nav-links a { color: var(--text-primary); text-decoration: none; font-weight: 600; }
+.navbar .nav-links a:hover { text-decoration: underline; }
+
+/* De-card the UI: transparent sections with minimal spacing */
+
+:root {
+  --black: #000000ff;
+  --orange-web: #fca311ff;
+  --white: #ffffffff;
+  --text-primary: var(--white);
+  --text-secondary: var(--black);
+  --bg: var(--black);
+  --bg-soft: #1a1a1a;
+  --ink: var(--orange-web);
+  --ink-weak: var(--white);
+  --shadow-sm: none;
+  --shadow-md: none;
+  --accent: var(--orange-web);
+  --accent2: var(--white);
+  --accent3: var(--white);
+  --glass-bg: var(--bg-soft);
+  --glass-blur: none;
+  --overlay: rgba(0,0,0,0.85);
+}
+
+.file-upload-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  padding: .7rem 1.1rem;
+  border-radius: 16px;
+  background: var(--accent);
+  color: var(--text-primary);
+  border: 2px solid var(--accent2);
+  box-shadow: none;
+  transition: transform 120ms ease, background 180ms, border-color 180ms, color 180ms;
+}
+.file-upload-label:hover {
+  background: var(--accent2);
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+input[type=number]:focus, select:focus, input[type=text]:focus { outline:2px solid var(--ink); outline-offset:2px; }
+
+input[type=range] { appearance:none; width:100%; height:4px; background:#E2E8F0; border-radius:9999px; }
+input[type=range]::-webkit-slider-thumb { appearance:none; width:16px; height:16px; border-radius:50%; background:var(--ink); border:2px solid var(--ink); cursor:pointer; }
+input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: #111; border: 2px solid #111; cursor: pointer; }
+
+
+.btn, .file-upload-label {
+  background: var(--accent); /* Yellow from CSS variable */
+  color: var(--text-primary); /* White text */
+  border: 2px solid var(--black); /* Black border */
+  transition: transform 120ms ease, background 180ms, border-color 180ms, color 180ms;
+  padding: 0.6rem 1rem; /* Adjust padding for consistent button size */
+  font-size: 0.9rem; /* Ensure text fits properly */
+  margin: 0.5rem; /* Add margin for better spacing */
+}
+.btn:hover, .file-upload-label:hover {
+  background: var(--accent2); /* Slightly lighter background on hover */
+  color: var(--text-primary); /* Ensure text remains readable */
+  border-color: var(--accent); /* Add subtle border color change */
+}
+.btn:active { transform: translateY(0); }
+.btn[disabled] { opacity:.45; cursor:not-allowed; }
+.btn-ghost {
+  background: var(--bg-soft);
+  color: var(--accent);
+  border: 1.5px solid var(--accent2);
+  box-shadow: none;
+}
+.btn-ghost:hover {
+  background: var(--accent2);
+  color: #181818;
+  box-shadow: var(--shadow-md);
+}
+.btn-small {
+  padding: 0.4rem 0.8rem; /* Smaller padding for compact buttons */
+  font-size: 0.8rem; /* Adjust font size for smaller buttons */
+}
+
+
+
+.chip {
+  background: var(--accent);
+  color: var(--text-primary);
+  box-shadow: none;
+}
+
+pre {
+  background: var(--glass-bg);
+  padding:.9rem;
+  border-radius:16px;
+  box-shadow: 0 2px 12px 0 #d4af3733, var(--shadow-sm);
+  overflow:auto;
+  border: 1px solid #d4af37;
+  color: var(--text-primary);
+}
+
+
+/* Plotly plots with rounded corners and glass background */
+.plotly-graph-div {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  background: var(--glass-bg) !important;
+  box-shadow: var(--shadow-sm) !important;
+  backdrop-filter: var(--glass-blur) !important;
+}
+.plotly-graph-div .svg-container { border-radius: 16px !important; }
+
+/* Bloch sphere cards with rounded corners and semi-transparent white background */
+
+.bloch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+  align-items: stretch;
+}
+@media (max-width:1024px){ .bloch-grid { grid-template-columns: repeat(2, 1fr);} }
+@media (max-width:640px){ .bloch-grid { grid-template-columns: 1fr;} }
+.bloch-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 340px;
+  margin: 1rem; /* Add spacing around Bloch cards */
+  padding: 1rem; /* Ensure content is well-spaced */
+  background: var(--black); /* Maintain black background */
+  color: var(--text-primary); /* Ensure text visibility */
+  box-shadow: none;
+  border: 1.5px solid var(--accent);
+}
+.bloch-card .plotly-graph-div { width:100% !important; height:100% !important; border-radius: 12px !important; }
+
+/* Fullscreen button styles */
+.btn.fullscreen-btn {
+  background: var(--accent); /* Apply accent color */
+  color: var(--text-primary); /* Ensure text is visible */
+  border: 2px solid var(--black); /* Add black border for consistency */
+  padding: 0.6rem 1rem; /* Adjust padding to prevent text overflow */
+  font-size: 0.9rem; /* Adjust font size for better fit */
+  transition: transform 120ms ease, background 180ms, border-color 180ms, color 180ms;
+}
+.btn.fullscreen-btn:hover {
+  background: var(--black); /* Change background to black on hover */
+  color: var(--accent); /* Change text color to accent on hover */
+  border-color: var(--accent); /* Change border color to accent on hover */
+}
+
+/* Heatmap containers with rounded corners */
+.heatmap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 768px) { .heatmap-grid { grid-template-columns: 1fr; } }
+.heatmap-grid .card { background: rgba(255,255,255,0.9); border-radius: 16px; padding: 16px; box-shadow: var(--shadow-sm); border: 1px solid rgba(15,23,42,0.08); }
+
+/* Circuit stats with rounded corners */
+.circuit-stats { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 16px; }
+.stat-item { background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 12px; box-shadow: var(--shadow-sm); border: 1px solid rgba(15,23,42,0.08); font-size: 0.9rem; }
+
+/* Selection summary chips */
+.selection-summary { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+.toast { position:fixed; top:24px; right:16px; background: var(--bg-soft); color: var(--ink); padding:.6rem .8rem; border-radius:16px; box-shadow: none; border: 1px solid rgba(15,23,42,0.08); }
+
+/* Apply brand gradient and subtitle color */
+.brand-gradient {
+  color: var(--text-primary); /* Ensure text is readable */
+}
+.subtitle {
+  color: var(--accent3); /* Apply accent3 to subtitle */
+}
+
+/* Mobile adjustments */
+
+@media (max-width: 640px) {
+  .navbar-inner { padding: 10px 12px; }
+  .container { margin-top: 72px; }
+  .card { padding: 12px 4px; }
+  .btn, .btn-ghost { font-size: 1rem; padding: .6rem .7rem; }
+  .chip { font-size: .98rem; }
+}
+
+/* Responsive tweaks for forms and grid layouts */
+form[method="POST"] {
+  width: 100%;
+  box-sizing: border-box;
+}
+@media (max-width: 900px) {
+  form[method="POST"] {
+    grid-template-columns: 1fr !important;
+    flex-direction: column !important;
+    gap: .7rem !important;
+  }
+}
+
+/* Clear, Reset Circuit, and Random Circuit button styles */
+.clear-btn, .reset-circuit-btn, .random-circuit-btn {
+  background: var(--accent); /* Apply accent color */
+  color: var(--text-primary); /* Ensure text is visible */
+  border: 2px solid var(--black); /* Add black border for consistency */
+  transition: transform 120ms ease, background 180ms, border-color 180ms, color 180ms;
+  padding: 0.6rem 1rem; /* Ensure consistent padding */
+  font-size: 0.9rem; /* Ensure text fits properly */
+}
+.clear-btn:hover, .reset-circuit-btn:hover, .random-circuit-btn:hover {
+  background: var(--black); /* Change background to black on hover */
+  color: var(--accent); /* Change text color to accent on hover */
+  border-color: var(--accent); /* Change border color to accent on hover */
+}

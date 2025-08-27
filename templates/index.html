@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div id="build" class="card">
+  <form method="POST" enctype="multipart/form-data" style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;">
+    <span class="file-upload">
+      <input type="file" name="qasm_file" id="qasm_file" accept=".qasm,.txt" />
+      <label for="qasm_file" class="file-upload-label">Choose QASM File</label>
+    </span>
+    <button class="btn" name="action" value="upload_qasm">Upload QASM</button>
+    <button class="btn clear-btn" name="action" value="clear">Clear</button>
+  </form>
+
+  <form method="POST" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-top:1rem;">
+    <div class="field"><label>Number of Qubits</label><input type="number" name="num_qubits" min="1" max="5" value="{{qc.num_qubits}}" /></div>
+    <div class="field"><label>Classical Bits</label><input type="number" name="num_clbits" min="0" max="5" value="{{qc.num_clbits}}" /></div>
+    <div class="field"><label>Target Qubit</label>
+      <select name="target_qubit">
+        {% for i in range(qc.num_qubits) %}
+          <option value="{{ i }}" {% if i == target_qubit %}selected{% endif %}>q{{ i }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field"><label>Control Qubit</label>
+      <select name="control_qubit">
+        {% for i in range(qc.num_qubits) %}
+          <option value="{{ i }}" {% if i == control_qubit %}selected{% endif %}>q{{ i }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field" style="grid-column: span 2;"><label>Rotation Angle (π)</label><input type="range" name="rot_angle_pi" min="0" max="200" step="5" value="{{ (rot_angle_pi*100)|int }}" oninput="this.nextElementSibling.value=(this.value/100).toFixed(2)"><output>{{'%.2f'|format(rot_angle_pi)}}</output></div>
+    <div style="display:flex;align-items:end;gap:.5rem;"><button class="btn" name="action" value="resize">Apply Size</button><button class="btn reset-circuit-btn" name="action" value="reset">Reset Circuit</button><button class="btn random-circuit-btn" name="action" value="random">Random Circuit</button></div>
+  </form>
+
+  <!-- Current selection summary -->
+  <div style="display:flex;gap:.5rem;align-items:center;margin-top:.75rem;flex-wrap:wrap;">
+    <span class="chip">Target: q{{target_qubit}}</span>
+    <span class="chip">Control: q{{control_qubit}}</span>
+    <span class="chip">Angle: {{ '%.2f'|format(rot_angle_pi) }}π</span>
+  </div>
+
+  <!-- Gate groups -->
+  <div class="card" style="margin-top:.75rem;">
+    <h3>Pauli & Phase</h3>
+    <form method="POST" style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <input type="hidden" name="num_qubits" value="{{qc.num_qubits}}" />
+      <input type="hidden" name="num_clbits" value="{{qc.num_clbits}}" />
+      <input type="hidden" name="target_qubit" value="{{target_qubit}}" />
+      <input type="hidden" name="control_qubit" value="{{control_qubit}}" />
+      <input type="hidden" name="rot_angle_pi" value="{{rot_angle_pi}}" />
+      <button class="btn btn-small" name="action" value="h">H(q{{target_qubit}})</button>
+      <button class="btn btn-small" name="action" value="x">X(q{{target_qubit}})</button>
+      <button class="btn btn-small" name="action" value="y">Y(q{{target_qubit}})</button>
+      <button class="btn btn-small" name="action" value="z">Z(q{{target_qubit}})</button>
+      <button class="btn btn-small" name="action" value="s">S(q{{target_qubit}})</button>
+      <button class="btn btn-small" name="action" value="t">T(q{{target_qubit}})</button>
+      <button class="btn btn-small" name="action" value="sdg">S†(q{{target_qubit}})</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>Rotations</h3>
+    <form method="POST" style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <input type="hidden" name="num_qubits" value="{{qc.num_qubits}}" />
+      <input type="hidden" name="num_clbits" value="{{qc.num_clbits}}" />
+      <input type="hidden" name="target_qubit" value="{{target_qubit}}" />
+      <input type="hidden" name="control_qubit" value="{{control_qubit}}" />
+      <input type="hidden" name="rot_angle_pi" value="{{rot_angle_pi}}" />
+      <button class="btn btn-small" name="action" value="rx">RX({{ '%.2f'|format(rot_angle_pi) }}π, q{{target_qubit}})</button>
+      <button class="btn btn-small" name="action" value="ry">RY({{ '%.2f'|format(rot_angle_pi) }}π, q{{target_qubit}})</button>
+      <button class="btn btn-small" name="action" value="rz">RZ({{ '%.2f'|format(rot_angle_pi) }}π, q{{target_qubit}})</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>Two‑Qubit</h3>
+    <form method="POST" style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <input type="hidden" name="num_qubits" value="{{qc.num_qubits}}" />
+      <input type="hidden" name="num_clbits" value="{{qc.num_clbits}}" />
+      <input type="hidden" name="target_qubit" value="{{target_qubit}}" />
+      <input type="hidden" name="control_qubit" value="{{control_qubit}}" />
+      <input type="hidden" name="rot_angle_pi" value="{{rot_angle_pi}}" />
+      <button class="btn btn-small" name="action" value="cx" {% if qc.num_qubits < 2 or control_qubit == target_qubit %}disabled{% endif %}>CX(q{{control_qubit}}→q{{target_qubit}})</button>
+      <button class="btn btn-small" name="action" value="cy" {% if qc.num_qubits < 2 or control_qubit == target_qubit %}disabled{% endif %}>CY(q{{control_qubit}}→q{{target_qubit}})</button>
+      <button class="btn btn-small" name="action" value="cz" {% if qc.num_qubits < 2 or control_qubit == target_qubit %}disabled{% endif %}>CZ(q{{control_qubit}}→q{{target_qubit}})</button>
+    </form>
+  </div>
+</div>
+
+<div id="visualize" class="card" style="margin-top: 20px;">
+  <h2 style="margin-top:0;">Circuit</h2>
+  <pre style="font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 14px; line-height: 1.3;">{{ circuit_text }}</pre>
+  <div class="row">
+  <div class="card">
+      <h3>Export QASM</h3>
+      <pre style="white-space:pre-wrap;">{{ qasm_text }}</pre>
+      <a class="btn" href="{{ url_for('export_qasm') }}" download>Download QASM</a>
+    </div>
+  <div class="card">
+      <h3>Presets</h3>
+      <form method="POST">
+        <button class="btn" name="action" value="preset_bell">Bell State</button>
+        <button class="btn" name="action" value="preset_ghz">GHZ State</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="analyze" class="card" style="margin-top: 20px;">
+  <h2 style="margin-top:0;">Quantum State</h2>
+  <p><strong>State Probabilities:</strong></p>
+  <pre>[{{ prob_str }}]</pre>
+  <p><strong>State Purity:</strong> {{ '%.4f'|format(purity) }} — {{ 'Pure' if (purity-1.0)|abs < 1e-10 else 'Mixed' }}</p>
+  <p><strong>Interpretation:</strong> {{ interpretation }}</p>
+  <h3>Probability Heatmap</h3>
+  <div class="card">
+    {{ heatmap_html|safe }}
+  </div>
+  <div class="row" style="margin-top:12px;">
+    <div class="card">{{ real_html|safe }}</div>
+    <div class="card">{{ imag_html|safe }}</div>
+  </div>
+  <h3>Bloch Spheres</h3>
+  <style>
+    .bloch-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px 24px;
+    }
+    @media (max-width: 900px) {
+      .bloch-grid { grid-template-columns: 1fr; }
+    }
+    .bloch-card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid rgba(15,23,42,0.08);
+      padding: 12px 12px 6px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 0;
+      min-height: 340px;
+      justify-content: flex-start;
+    }
+    .bloch-card .plotly-graph-div {
+      margin-bottom: 2px;
+    }
+    .bloch-3d-btn {
+      margin-top: 4px;
+      margin-bottom: 0;
+      width: auto;
+      min-width: 48px;
+      max-width: 90px;
+      align-self: center;
+      font-size: 0.98rem;
+      padding: 3px 14px;
+      border-radius: 8px;
+      background: var(--primary, #e0e7ff);
+      color: #222;
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: background 0.2s;
+    }
+    .bloch-3d-btn:hover {
+      background: #c7d2fe;
+    }
+  </style>
+  <div class="bloch-grid">
+    {% for b in bloch_html_blocks %}
+      <div class="bloch-card" data-qubit="{{ loop.index0 }}">
+        {{ b|safe }}
+        <button class="btn fullscreen-btn bloch-3d-btn" title="Open 3D Bloch Sphere" type="button">Fullscreen</button>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div id="report" class="card" style="margin-top: 20px; display:flex;justify-content:space-between;align-items:center;">
+  <div>
+    <h2 style="margin-top:0;">Report</h2>
+    <p>Download a PDF report with circuit visuals and basic stats.</p>
+  </div>
+  <div>
+    <a class="btn" href="{{ url_for('download_pdf') }}">Download PDF</a>
+  </div>
+</div>
+
+<script src="/static/bloch_3d_newtab.js"></script>
+{% endblock %}
+
+
