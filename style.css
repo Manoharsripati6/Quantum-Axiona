@@ -141,9 +141,9 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
   margin: 0.5rem; /* Add margin for better spacing */
 }
 .btn:hover, .file-upload-label:hover {
-  background: var(--accent2); /* Slightly lighter background on hover */
-  color: var(--text-primary); /* Ensure text remains readable */
-  border-color: var(--accent); /* Add subtle border color change */
+  background: var(--black); /* Change background to black on hover */
+  color: var(--accent); /* Accent text for contrast */
+  border-color: var(--accent); /* Accent border on hover */
 }
 .btn:active { transform: translateY(0); }
 .btn[disabled] { opacity:.45; cursor:not-allowed; }

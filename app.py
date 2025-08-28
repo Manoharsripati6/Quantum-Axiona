@@ -60,6 +60,36 @@ def generate_pdf_report(qc: QuantumCircuit) -> bytes:
     styles = getSampleStyleSheet()
     story = []
     content_width = doc.width
+    
+    # Check if kaleido is available for plotly image generation
+    try:
+        import kaleido
+        kaleido_available = True
+    except ImportError:
+        kaleido_available = False
+        print("[PDF] Warning: kaleido not available, using matplotlib fallback for plots")
+    
+    def create_matplotlib_heatmap(data, title, cmap='viridis'):
+        """Create a heatmap using matplotlib as fallback"""
+        try:
+            fig, ax = plt.subplots(figsize=(8, 6))
+            im = ax.imshow(data, cmap=cmap, aspect='auto')
+            ax.set_title(title, fontsize=14, fontweight='bold')
+            ax.set_xticks(range(len(data.columns)))
+            ax.set_yticks(range(len(data.index)))
+            ax.set_xticklabels(data.columns, rotation=45, ha='right')
+            ax.set_yticklabels(data.index)
+            plt.colorbar(im, ax=ax)
+            plt.tight_layout()
+            
+            buf = io.BytesIO()
+            fig.savefig(buf, format='png', dpi=150, bbox_inches='tight')
+            plt.close(fig)
+            buf.seek(0)
+            return buf
+        except Exception as e:
+            print(f"[PDF] Error in matplotlib fallback: {e}")
+            return None
 
     # --- Precompute quantum state and probabilities for all plots ---
     rho = simulate_circuit(qc)
@@ -154,49 +184,89 @@ def generate_pdf_report(qc: QuantumCircuit) -> bytes:
     story.append(Paragraph("[" + ", ".join(prob_formatted) + "]", styles['Code']))
     story.append(Spacer(1, 0.2 * inch))
 
-    # Add probability heatmap (plotly)
+    # Add probability heatmap (plotly or matplotlib fallback)
     try:
         import pandas as pd
-        import plotly.express as px
         n_states = 2**qc.num_qubits
         state_labels = [f"|{format(i, f'0{qc.num_qubits}b')}⟩" for i in range(n_states)]
         prob_df = pd.DataFrame(np.abs(rho.data) ** 2, index=state_labels, columns=state_labels)
-        heatmap = px.imshow(prob_df, title="Probability Matrix |⟨i|ρ|j⟩|²", color_continuous_scale="Blues", aspect="auto", text_auto=True)
-        heatmap.update_layout(width=600, height=500)
-        buf = io.BytesIO()
-        heatmap.write_image(buf, format='png', scale=2)
-        buf.seek(0)
-        story.append(Paragraph("Probability Heatmap", styles['Heading2']))
-        story.append(RLImage(buf, width=content_width, height=content_width*0.6))
-        story.append(Spacer(1, 0.2 * inch))
+        
+        if kaleido_available:
+            import plotly.express as px
+            heatmap = px.imshow(prob_df, title="Probability Matrix |⟨i|ρ|j⟩|²", color_continuous_scale="Blues", aspect="auto", text_auto=True)
+            heatmap.update_layout(width=600, height=500)
+            buf = io.BytesIO()
+            heatmap.write_image(buf, format='png', scale=2)
+            buf.seek(0)
+        else:
+            buf = create_matplotlib_heatmap(prob_df, "Probability Matrix |⟨i|ρ|j⟩|²", cmap='Blues')
+        
+        if buf:
+            story.append(Paragraph("Probability Heatmap", styles['Heading2']))
+            story.append(RLImage(buf, width=content_width, height=content_width*0.6))
+            story.append(Spacer(1, 0.2 * inch))
+        else:
+            story.append(Paragraph("Probability Heatmap", styles['Heading2']))
+            story.append(Paragraph("Error: Could not generate heatmap image", styles['Normal']))
+            story.append(Spacer(1, 0.2 * inch))
     except Exception as e:
         print(f"[PDF] Error generating probability heatmap: {e}")
+        story.append(Paragraph("Probability Heatmap", styles['Heading2']))
+        story.append(Paragraph("Error: Could not generate heatmap image", styles['Normal']))
+        story.append(Spacer(1, 0.2 * inch))
 
-    # Add real/imaginary heatmaps (plotly)
+    # Add real/imaginary heatmaps (plotly or matplotlib fallback)
     try:
         real_df = pd.DataFrame(np.real(rho.data), index=state_labels, columns=state_labels)
-        real_map = px.imshow(real_df, title="Real Part Re(⟨i|ρ|j⟩)", color_continuous_scale="RdBu_r", aspect="auto", text_auto=True)
-        real_map.update_layout(width=600, height=400)
-        buf = io.BytesIO()
-        real_map.write_image(buf, format='png', scale=2)
-        buf.seek(0)
-        story.append(Paragraph("Real Part Heatmap", styles['Heading2']))
-        story.append(RLImage(buf, width=content_width, height=content_width*0.5))
-        story.append(Spacer(1, 0.1 * inch))
+        if kaleido_available:
+            import plotly.express as px
+            real_map = px.imshow(real_df, title="Real Part Re(⟨i|ρ|j⟩)", color_continuous_scale="RdBu_r", aspect="auto", text_auto=True)
+            real_map.update_layout(width=600, height=400)
+            buf = io.BytesIO()
+            real_map.write_image(buf, format='png', scale=2)
+            buf.seek(0)
+        else:
+            buf = create_matplotlib_heatmap(real_df, "Real Part Re(⟨i|ρ|j⟩)", cmap='RdBu_r')
+        
+        if buf:
+            story.append(Paragraph("Real Part Heatmap", styles['Heading2']))
+            story.append(RLImage(buf, width=content_width, height=content_width*0.5))
+            story.append(Spacer(1, 0.1 * inch))
+        else:
+            story.append(Paragraph("Real Part Heatmap", styles['Heading2']))
+            story.append(Paragraph("Error: Could not generate real part heatmap image", styles['Normal']))
+            story.append(Spacer(1, 0.1 * inch))
     except Exception as e:
         print(f"[PDF] Error generating real part heatmap: {e}")
+        story.append(Paragraph("Real Part Heatmap", styles['Heading2']))
+        story.append(Paragraph("Error: Could not generate real part heatmap image", styles['Normal']))
+        story.append(Spacer(1, 0.1 * inch))
+    
     try:
         imag_df = pd.DataFrame(np.imag(rho.data), index=state_labels, columns=state_labels)
-        imag_map = px.imshow(imag_df, title="Imaginary Part Im(⟨i|ρ|j⟩)", color_continuous_scale="RdBu_r", aspect="auto", text_auto=True)
-        imag_map.update_layout(width=600, height=400)
-        buf = io.BytesIO()
-        imag_map.write_image(buf, format='png', scale=2)
-        buf.seek(0)
-        story.append(Paragraph("Imaginary Part Heatmap", styles['Heading2']))
-        story.append(RLImage(buf, width=content_width, height=content_width*0.5))
-        story.append(Spacer(1, 0.2 * inch))
+        if kaleido_available:
+            import plotly.express as px
+            imag_map = px.imshow(imag_df, title="Imaginary Part Im(⟨i|ρ|j⟩)", color_continuous_scale="RdBu_r", aspect="auto", text_auto=True)
+            imag_map.update_layout(width=600, height=400)
+            buf = io.BytesIO()
+            imag_map.write_image(buf, format='png', scale=2)
+            buf.seek(0)
+        else:
+            buf = create_matplotlib_heatmap(imag_df, "Imaginary Part Im(⟨i|ρ|j⟩)", cmap='RdBu_r')
+        
+        if buf:
+            story.append(Paragraph("Imaginary Part Heatmap", styles['Heading2']))
+            story.append(RLImage(buf, width=content_width, height=content_width*0.5))
+            story.append(Spacer(1, 0.2 * inch))
+        else:
+            story.append(Paragraph("Imaginary Part Heatmap", styles['Heading2']))
+            story.append(Paragraph("Error: Could not generate imaginary part heatmap image", styles['Normal']))
+            story.append(Spacer(1, 0.2 * inch))
     except Exception as e:
         print(f"[PDF] Error generating imaginary part heatmap: {e}")
+        story.append(Paragraph("Imaginary Part Heatmap", styles['Heading2']))
+        story.append(Paragraph("Error: Could not generate imaginary part heatmap image", styles['Normal']))
+        story.append(Spacer(1, 0.2 * inch))
 
     # Add Bloch spheres (Plotly, matching UI)
     if qc.num_qubits <= 3:
@@ -216,7 +286,11 @@ def generate_pdf_report(qc: QuantumCircuit) -> bytes:
                 story.append(Spacer(1, 0.1 * inch))
             except Exception as e:
                 print(f"[PDF] Error generating Plotly Bloch sphere (UI match) for qubit {i}: {e}")
+                story.append(Paragraph(f"Qubit {i} Bloch Sphere", styles['Heading3']))
+                story.append(Paragraph("Error: Could not generate Bloch sphere image", styles['Normal']))
+                story.append(Spacer(1, 0.1 * inch))
                 continue
+
 
     # Detailed state-by-state analysis
     story.append(Paragraph("Detailed State Analysis", styles['Heading2']))
@@ -482,15 +556,23 @@ def index():
     heatmap_html = heatmap.to_html(full_html=False, include_plotlyjs='cdn')
 
     # Real and Imaginary heatmaps
-    real_df = pd.DataFrame(np.real(rho.data), index=state_labels, columns=state_labels)
-    real_map = px.imshow(real_df, title="Real Part Re(⟨i|ρ|j⟩)", color_continuous_scale="RdBu_r", aspect="auto", text_auto=True)
-    real_map.update_layout(height=450)
-    real_html = real_map.to_html(full_html=False, include_plotlyjs='cdn')
+    try:
+        imag_df = pd.DataFrame(np.imag(rho.data), index=state_labels, columns=state_labels)
+        imag_map = px.imshow(imag_df, title="Imaginary Part Im(⟨i|ρ|j⟩)", color_continuous_scale="RdBu_r", aspect=1, text_auto=True)
+        imag_map.update_layout(height=450, width=450)
+        imag_html = imag_map.to_html(full_html=False, include_plotlyjs='cdn')
+    except Exception as e:
+        print(f"Error generating imaginary part heatmap: {e}")
+        imag_html = ""
 
-    imag_df = pd.DataFrame(np.imag(rho.data), index=state_labels, columns=state_labels)
-    imag_map = px.imshow(imag_df, title="Imaginary Part Im(⟨i|ρ|j⟩)", color_continuous_scale="RdBu_r", aspect="auto", text_auto=True)
-    imag_map.update_layout(height=450)
-    imag_html = imag_map.to_html(full_html=False, include_plotlyjs='cdn')
+    try:
+        real_df = pd.DataFrame(np.real(rho.data), index=state_labels, columns=state_labels)
+        real_map = px.imshow(real_df, title="Real Part Re(⟨i|ρ|j⟩)", color_continuous_scale="RdBu_r", aspect=1, text_auto=True)
+        real_map.update_layout(height=450, width=450)
+        real_html = real_map.to_html(full_html=False, include_plotlyjs='cdn')
+    except Exception as e:
+        print(f"Error generating real part heatmap: {e}")
+        real_html = ""
 
     state_vector = rho.data.diagonal() if rho.num_qubits == 1 else rho.data.flatten()
     probs = np.abs(state_vector) ** 2
