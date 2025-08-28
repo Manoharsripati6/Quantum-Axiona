@@ -1,4 +1,4 @@
-# 🔮 Quantum State Visualizer
+#  Quantum Axiona
 
 An interactive web application for visualizing quantum states, building quantum circuits, and exploring quantum mechanics concepts through Bloch sphere representations. **Now with QASM file import support!**
 
@@ -17,7 +17,7 @@ An interactive web application for visualizing quantum states, building quantum 
 
 1. **Clone the repository**:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Manoharsripati6/Quantum-Axiona.git
    cd quantum_state_visualizer
    ```
 
@@ -28,7 +28,7 @@ An interactive web application for visualizing quantum states, building quantum 
 
 3. **Run the application**:
    ```bash
-   streamlit run app.py
+   python app.py
    ```
 
 4. **Open your browser** and navigate to `http://localhost:8501`
